@@ -1,0 +1,31 @@
+name: check-signals
+
+on:
+  schedule:
+    # 每 5 分鐘跑一次（GitHub Actions 排程實際觸發時間可能有幾分鐘誤差，這是正常的）
+    - cron: '*/5 * * * *'
+  workflow_dispatch: {}   # 讓你可以在 GitHub 網頁上手動點一次「Run workflow」測試
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 安裝套件
+        working-directory: scripts
+        run: npm install
+
+      - name: 檢查訊號並發送推播
+        working-directory: scripts
+        env:
+          WORKER_URL: ${{ secrets.WORKER_URL }}
+          ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
+          VAPID_SUBJECT: ${{ secrets.VAPID_SUBJECT }}
+          VAPID_PUBLIC_KEY: ${{ secrets.VAPID_PUBLIC_KEY }}
+          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+        run: node check-signals.mjs
